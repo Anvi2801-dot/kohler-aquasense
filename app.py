@@ -8,7 +8,7 @@ Tab 1:
     Executive View - Facility Head
 
 Tab 2:
-    Field Technician Portal - Marcus
+    Field Technician Portal - Mohit
 
 Dependencies:
     streamlit
@@ -613,7 +613,7 @@ st.markdown(
 tab_executive, tab_technician = st.tabs(
     [
         "🏢 Executive View",
-        "🔧 Field Technician Portal — Marcus",
+        "🔧 Field Technician Portal — Mohit",
     ]
 )
 
@@ -1042,7 +1042,7 @@ with tab_executive:
 with tab_technician:
 
     st.markdown(
-        "## 🔧 Marcus — Field Technician Portal", unsafe_allow_html=True
+        "## 🔧 Mohit — Field Technician Portal", unsafe_allow_html=True
     )
 
     st.caption(

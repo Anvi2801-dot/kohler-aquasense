@@ -100,41 +100,27 @@ export default function HomePage() {
       (fixture) => fixture.status === "LEAK"
     ).length;
 
+    // 1. Direct average of backend Hygiene Scores calculated by analytics.py
     const averageHygiene =
-      data.reduce(
-        (sum, fixture) => sum + fixture.hygiene_score,
-        0
-      ) / data.length;
+    data.reduce((sum, fixture) => sum + fixture.hygiene_score, 0) / data.length;
 
-    const availability =
-      ((normal + hygieneWarnings) / data.length) * 100;
+    // 2. Availability Ratio
+    const availability = ((normal + hygieneWarnings) / data.length) * 100;
 
+    // 3. Overall Health Score (Weighted)
     const calculatedHealth = Math.max(
       0,
       Math.min(
         100,
-        Math.round(
-          averageHygiene * 0.6 +
-            availability * 0.4 -
-            leaks * 8
-        )
+        Math.round(averageHygiene * 0.6 + availability * 0.4 - leaks * 8)
       )
     );
-
     setHealthScore(calculatedHealth);
+    setHygieneCompliance(Math.round(averageHygiene));
 
-    setHygieneCompliance(
-      Math.round(averageHygiene)
-    );
-
+    // 4. Water Efficiency (% deduction based on active leaks)
     setWaterEfficiency(
-      Math.max(
-        70,
-        Math.min(
-          100,
-          Math.round(100 - leaks * 3)
-        )
-      )
+      Math.max(70, Math.min(100, Math.round(100 - leaks * 3)))
     );
   }
 
@@ -167,7 +153,7 @@ export default function HomePage() {
       {/* MAIN APPLICATION */}
       {/* ================================================== */}
 
-      <div className="mx-auto max-w-[1600px] px-6 py-6 lg:px-8">
+      <div className="w-full px-8 py-6">
 
         {/* ================================================== */}
         {/* FACILITY TITLE + PERSONA SWITCHER */}
@@ -239,7 +225,7 @@ export default function HomePage() {
               }`}
             >
               <Wrench size={16} />
-              Field Technician Portal - Marcus
+              Field Technician Portal - Mohit
             </button>
 
           </div>
@@ -333,19 +319,33 @@ export default function HomePage() {
 
                 <div className="mt-8 flex items-center justify-center">
 
-                  <div className="relative flex h-44 w-44 items-center justify-center rounded-full border-[12px] border-emerald-500/20">
+                  <div className="relative flex h-44 w-44 items-center justify-center">
 
-                    <div
-                      className="absolute inset-0 rounded-full border-[12px] border-transparent border-t-emerald-400 border-r-emerald-400"
-                      style={{
-                        transform: `rotate(${Math.max(
-                          0,
-                          healthScore * 1.8 - 90
-                        )}deg)`,
-                      }}
-                    />
+                    <svg className="h-full w-full -rotate-90 transform" viewBox="0 0 100 100">
+                      {/* Background Track */}
+                      <circle
+                        cx="50"
+                        cy="50"
+                        r="40"
+                        className="stroke-emerald-500/10"
+                        strokeWidth="8"
+                        fill="transparent"
+                      />
+                      {/* Dynamic Progress Fill */}
+                      <circle
+                        cx="50"
+                        cy="50"
+                        r="40"
+                        className="stroke-emerald-400 transition-all duration-700 ease-out"
+                        strokeWidth="8"
+                        strokeDasharray={251.32} // 2 * pi * r (2 * 3.14159 * 40)
+                        strokeDashoffset={251.32 - (251.32 * healthScore) / 100}
+                        strokeLinecap="round"
+                        fill="transparent"
+                      />
+                    </svg>
 
-                    <div className="text-center">
+                    <div className="absolute text-center">
 
                       <p className="text-4xl font-bold">
                         {healthScore}

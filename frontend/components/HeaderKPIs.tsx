@@ -188,7 +188,7 @@ export default function Header() {
             icon={<Gauge size={19} />}
             label="Active Fleet Uptime"
             value={`${uptime.toFixed(1)}%`}
-            subtitle="9 Connected Fixtures (Two Nines Seven)"
+            subtitle="9 Connected Fixtures"
           />
         </div>
       </div>

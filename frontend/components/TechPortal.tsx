@@ -164,7 +164,7 @@ export default function TechnicianPortal() {
           </div>
 
           <h2 className="mt-2 text-2xl font-semibold tracking-tight text-white">
-            Marcus
+            Mohit
           </h2>
 
           <p className="mt-1 text-sm text-slate-400">
@@ -367,7 +367,7 @@ export default function TechnicianPortal() {
                       </p>
 
                       <p className="mt-1 text-sm font-medium text-slate-300">
-                        Marcus
+                        Mohit
                       </p>
                     </div>
                   </div>
