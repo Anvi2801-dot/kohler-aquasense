@@ -159,21 +159,18 @@ def detect_continuous_leak(fixture_id, water_flow, occupancy):
 def calculate_hygiene_score(occupancy, flush_count):
     """
     Calculate the Dynamic Hygiene Index.
+    Unserviced occupancy lowers score; flushes restore score.
 
     Score:
 
         100
-        - (0.4 * occupancy)
-        - (0.5 * flush_count)
+        - (0.6 * occupancy)
+        + (0.8 * flush_count)
 
     The score is constrained to the range 0-100.
     """
 
-    score = (
-        100
-        - (0.4 * occupancy)
-        - (0.5 * flush_count)
-    )
+    score = 100 - (0.6 * occupancy) + (0.8 * flush_count)
 
     return round(max(0.0, min(100.0, score)), 2)
 
@@ -343,7 +340,7 @@ if __name__ == "__main__":
     # Import the synthetic telemetry generator.
     from backend.simulator import generate_telemetry_tick
 
-    print("=== Kohler AquaSense Analytics Test ===\n")
+    print("Kohler AquaSense Analytics Test\n")
 
     fixture = "KOHLER_FAUCET_101"
 
@@ -356,7 +353,7 @@ if __name__ == "__main__":
     for _ in range(3):
 
         tick = generate_telemetry_tick(
-            zone_id="ZONE_A1",
+            zone_id="PNQ_NITB_DEPARTURE_ZONE_3",
             fixture_id=fixture,
             anomaly_mode="NORMAL"
         )
@@ -374,7 +371,7 @@ if __name__ == "__main__":
     for _ in range(7):
 
         tick = generate_telemetry_tick(
-            zone_id="ZONE_A1",
+            zone_id="PNQ_NITB_DEPARTURE_ZONE_3",
             fixture_id=fixture,
             anomaly_mode="LEAK"
         )

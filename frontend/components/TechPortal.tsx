@@ -29,7 +29,7 @@ interface WorkOrder {
   recommended_action: string;
   kohler_part_number: string;
   kohler_part_name?: string;
-  water_saved_lph?: number;
+  water_saved_lpm?: number;
   status?: string;
   created_at?: string;
 }
@@ -83,9 +83,7 @@ function formatFixtureName(order: WorkOrder) {
 export default function TechnicianPortal() {
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>([]);
   const [loading, setLoading] = useState(true);
-  const [completingTicket, setCompletingTicket] = useState<string | null>(
-    null
-  );
+  const [completingTicket, setCompletingTicket] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const fetchWorkOrders = useCallback(async () => {
@@ -102,7 +100,6 @@ export default function TechnicianPortal() {
       }
 
       const data: DispatchResponse | WorkOrder[] = await response.json();
-
       setWorkOrders(normalizeWorkOrders(data));
     } catch (err) {
       console.error("Failed to fetch work orders:", err);
@@ -115,7 +112,7 @@ export default function TechnicianPortal() {
   useEffect(() => {
     fetchWorkOrders();
 
-    // Keep the technician queue synchronized with the backend.
+    // Keep the technician queue synchronized with the backend
     const interval = setInterval(fetchWorkOrders, 5000);
 
     return () => clearInterval(interval);
@@ -125,16 +122,6 @@ export default function TechnicianPortal() {
     try {
       setCompletingTicket(order.ticket_id);
       setError(null);
-
-      /*
-       * Backend endpoint expected:
-       *
-       * POST /api/dispatch/complete
-       * {
-       *   "ticket_id": "WO-30828",
-       *   "fixture_id": "KOHLER_FAUCET_101"
-       * }
-       */
 
       const response = await fetch(`${API_URL}/api/dispatch/complete`, {
         method: "POST",
@@ -151,21 +138,13 @@ export default function TechnicianPortal() {
         throw new Error(`Completion API returned ${response.status}`);
       }
 
-      // Remove the ticket immediately from Marcus's active queue.
+      // Remove the ticket immediately from the active queue
       setWorkOrders((current) =>
         current.filter((item) => item.ticket_id !== order.ticket_id)
       );
-
-      /*
-       * The backend should also reset the fixture's simulation/anomaly
-       * state to NORMAL. Once SpatialFloorPlan polls /api/telemetry again,
-       * that fixture will appear green on the map.
-       */
     } catch (err) {
       console.error("Failed to complete work order:", err);
-      setError(
-        `Could not complete ${order.ticket_id}. Please try again.`
-      );
+      setError(`Could not complete ${order.ticket_id}. Please try again.`);
     } finally {
       setCompletingTicket(null);
     }
@@ -221,7 +200,7 @@ export default function TechnicianPortal() {
         </div>
       )}
 
-      {/* Loading */}
+      {/* Loading State */}
       {loading ? (
         <div className="flex min-h-[320px] items-center justify-center rounded-2xl border border-slate-800 bg-slate-950/60">
           <div className="flex flex-col items-center gap-3">
@@ -233,7 +212,7 @@ export default function TechnicianPortal() {
           </div>
         </div>
       ) : workOrders.length === 0 ? (
-        /* Empty State */
+        /* Empty Queue State */
         <div className="flex min-h-[360px] flex-col items-center justify-center rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.03] px-6 text-center">
           <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full border border-emerald-500/20 bg-emerald-500/10">
             <CheckCircle2 className="h-8 w-8 text-emerald-400" />
@@ -254,7 +233,7 @@ export default function TechnicianPortal() {
           </div>
         </div>
       ) : (
-        /* Work Order Cards */
+        /* Active Work Orders */
         <div className="space-y-4">
           {workOrders.map((order) => {
             const priority =
@@ -267,15 +246,13 @@ export default function TechnicianPortal() {
                 key={order.ticket_id}
                 className="group overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/70 transition hover:border-slate-700"
               >
-                {/* Card Top */}
+                {/* Header Section */}
                 <div className="flex flex-col gap-4 border-b border-slate-800/80 p-5 sm:flex-row sm:items-start sm:justify-between">
                   <div className="flex flex-wrap items-center gap-2">
-                    {/* Ticket */}
                     <span className="rounded-md border border-slate-700 bg-slate-900 px-2.5 py-1 text-xs font-mono font-semibold text-slate-300">
                       #{order.ticket_id.replace("#", "")}
                     </span>
 
-                    {/* Priority */}
                     <span
                       className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-[10px] font-bold tracking-wider ${priority.badge}`}
                     >
@@ -297,9 +274,9 @@ export default function TechnicianPortal() {
                   )}
                 </div>
 
-                {/* Card Body */}
+                {/* Content Section */}
                 <div className="grid gap-6 p-5 lg:grid-cols-[1fr_1fr]">
-                  {/* Fixture Information */}
+                  {/* Fixture & Parts */}
                   <div>
                     <div className="mb-4 flex items-center gap-2">
                       <MapPin className="h-4 w-4 text-orange-400" />
@@ -317,7 +294,6 @@ export default function TechnicianPortal() {
                       {order.fixture_id}
                     </p>
 
-                    {/* Replacement Part */}
                     <div className="mt-5 rounded-xl border border-orange-500/20 bg-orange-500/[0.04] p-4">
                       <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.15em] text-orange-400">
                         <Package className="h-3.5 w-3.5" />
@@ -334,7 +310,7 @@ export default function TechnicianPortal() {
                     </div>
                   </div>
 
-                  {/* AI Diagnosis */}
+                  {/* AI Root Cause & Recommendation */}
                   <div className="space-y-4">
                     <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-4">
                       <div className="mb-2 flex items-center gap-2">
@@ -368,17 +344,17 @@ export default function TechnicianPortal() {
                   </div>
                 </div>
 
-                {/* Card Footer */}
+                {/* Footer Controls */}
                 <div className="flex flex-col gap-4 border-t border-slate-800/80 bg-slate-900/30 p-5 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-center gap-4">
-                    {typeof order.water_saved_lph === "number" && (
+                    {typeof order.water_saved_lpm === "number" && (
                       <div>
                         <p className="text-[9px] uppercase tracking-wider text-slate-500">
                           Est. Water Recovery
                         </p>
 
                         <p className="mt-1 text-sm font-semibold text-emerald-400">
-                          {order.water_saved_lph.toFixed(1)} L/hr
+                          {order.water_saved_lpm.toFixed(1)} L/hr
                         </p>
                       </div>
                     )}

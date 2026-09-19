@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import {
   Activity,
   Droplets,
-  DollarSign,
+  IndianRupee,
   Gauge,
   Wifi,
   WifiOff,
@@ -14,7 +14,7 @@ const API_URL = "http://localhost:8000";
 
 type KPIData = {
   total_water_saved_liters: number;
-  cost_saved_usd: number;
+  cost_saved_inr: number;
   active_leaks_count: number;
   system_uptime_percent: number;
 };
@@ -100,14 +100,9 @@ export default function Header() {
     };
   }, []);
 
-  const waterSaved =
-    kpis?.total_water_saved_liters ?? 1248;
-
-  const costSaved =
-    kpis?.cost_saved_usd ?? 18.72;
-
-  const uptime =
-    kpis?.system_uptime_percent ?? 99.7;
+  const waterSaved = kpis?.total_water_saved_liters ?? 1248;
+  const costSaved = kpis?.cost_saved_inr ?? 137.28;
+  const uptime = kpis?.system_uptime_percent ?? 99.7;
 
   return (
     <header className="w-full border-b border-[#1f2937] bg-[#0b0f19]">
@@ -130,7 +125,7 @@ export default function Header() {
               </h1>
 
               <p className="mt-0.5 text-[11px] uppercase tracking-[0.14em] text-slate-500">
-                Commercial Facility Intelligence
+                PNQ NITB — Departure Zone 3
               </p>
             </div>
           </div>
@@ -183,17 +178,17 @@ export default function Header() {
           />
 
           <MetricCard
-            icon={<DollarSign size={19} />}
-            label="Cost Saved"
-            value={`$${costSaved.toFixed(2)}`}
-            subtitle="Est. daily operational savings"
+            icon={<IndianRupee size={19} />}
+            label="Utility Cost Saved"
+            value={`₹${costSaved.toFixed(2)}`}
+            subtitle="Est. PMC bulk utility savings"
           />
 
           <MetricCard
             icon={<Gauge size={19} />}
             label="Active Fleet Uptime"
             value={`${uptime.toFixed(1)}%`}
-            subtitle="9 Connected Fixtures"
+            subtitle="9 Connected Fixtures (Two Nines Seven)"
           />
         </div>
       </div>

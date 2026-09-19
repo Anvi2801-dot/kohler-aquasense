@@ -17,7 +17,7 @@ import {
   X,
 } from "lucide-react";
 
-const API_URL = "http://localhost:8000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 
 // ============================================================
@@ -234,9 +234,6 @@ export default function SpatialFloorPlan() {
   const [selectedFixture, setSelectedFixture] =
     useState<Fixture | null>(null);
 
-  const [loading, setLoading] =
-    useState(false);
-
   const [actionLoading, setActionLoading] =
     useState<string | null>(null);
 
@@ -245,13 +242,14 @@ export default function SpatialFloorPlan() {
 
 
   // ==========================================================
-  // FETCH TELEMETRY
+  // FETCH TELEMETRY (Cached by default, Live on forced update)
   // ==========================================================
 
-  const fetchTelemetry = useCallback(async () => {
+  const fetchTelemetry = useCallback(async (isLive = false) => {
     try {
+      const endpoint = isLive ? "/api/telemetry" : "/api/telemetry/cached";
       const response = await fetch(
-        `${API_URL}/api/telemetry`,
+        `${API_URL}${endpoint}`,
         {
           cache: "no-store",
         }
@@ -286,12 +284,11 @@ export default function SpatialFloorPlan() {
   // ==========================================================
 
   useEffect(() => {
-    fetchTelemetry();
+    fetchTelemetry(false);
 
-    const interval = setInterval(
-      fetchTelemetry,
-      5000
-    );
+    const interval = setInterval(() => {
+      fetchTelemetry(false);
+    }, 5000);
 
     return () => clearInterval(interval);
   }, [fetchTelemetry]);
@@ -332,13 +329,12 @@ export default function SpatialFloorPlan() {
         );
       }
 
-      // Give backend analytics a moment
-      // to process the new simulation state.
       await new Promise((resolve) =>
         setTimeout(resolve, 350)
       );
 
-      await fetchTelemetry();
+      // Force live update after simulation action
+      await fetchTelemetry(true);
 
       if (action === "RESET") {
         setSelectedFixture(null);
@@ -455,7 +451,7 @@ export default function SpatialFloorPlan() {
           </h2>
 
           <p className="mt-1 text-xs text-slate-500">
-            Airport Terminal Complex · 9 Connected Fixtures
+            PNQ NITB · 9 Connected Fixtures
           </p>
         </div>
 

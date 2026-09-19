@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   Activity,
   Building2,
@@ -51,17 +51,11 @@ export default function HomePage() {
   const [waterEfficiency, setWaterEfficiency] = useState(96);
   const [hygieneCompliance, setHygieneCompliance] = useState(91);
 
-  useEffect(() => {
-    fetchTelemetry();
-
-    const interval = setInterval(fetchTelemetry, 5000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  async function fetchTelemetry() {
+  // Fetch telemetry using cached endpoint on initial loads/switches to avoid state reset
+  const fetchTelemetry = useCallback(async (isInitial = false) => {
     try {
-      const response = await fetch(`${API_URL}/api/telemetry`, {
+      const endpoint = isInitial ? "/api/telemetry/cached" : "/api/telemetry";
+      const response = await fetch(`${API_URL}${endpoint}`, {
         cache: "no-store",
       });
 
@@ -78,7 +72,18 @@ export default function HomePage() {
     } catch {
       setBackendOnline(false);
     }
-  }
+  }, []);
+
+  useEffect(() => {
+    // Immediate fetch on mount using cached state to prevent flicker
+    fetchTelemetry(true);
+
+    const interval = setInterval(() => {
+      fetchTelemetry(false);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [fetchTelemetry]);
 
   function calculateHealth(data: Fixture[]) {
     if (!data.length) return;
@@ -198,7 +203,7 @@ export default function HomePage() {
             </div>
 
             <h2 className="mt-1 text-xl font-semibold tracking-tight text-white">
-              Airport Terminal — Restroom Operations
+              Pune International Airport (PNQ) — NITB Departure Zone 3
             </h2>
 
             <p className="mt-1 text-sm text-slate-500">
@@ -211,7 +216,10 @@ export default function HomePage() {
           <div className="flex rounded-lg border border-[#1f2937] bg-[#111827] p-1">
 
             <button
-              onClick={() => setPersona("executive")}
+              onClick={() => {
+                setPersona("executive");
+                fetchTelemetry(true);
+              }}
               className={`flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition ${
                 persona === "executive"
                   ? "bg-[#1f2937] text-white shadow"

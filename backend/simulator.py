@@ -7,6 +7,7 @@ installed in a high-footfall facility such as an airport terminal restroom.
 Supported anomaly modes:
     - NORMAL
     - LEAK
+    - HYGIENE_WARNING
     - TRAFFIC_SPIKE
 """
 
@@ -17,45 +18,20 @@ from datetime import datetime, timezone
 def generate_telemetry_tick(zone_id, fixture_id, anomaly_mode=None):
     """
     Generate one synthetic IoT telemetry tick.
-
-    Parameters
-    ----------
-    zone_id : str
-        Identifier for the restroom/facility zone.
-    fixture_id : str
-        Identifier for the fixture, e.g. KOHLER_FAUCET_101.
-    anomaly_mode : str or None
-        Supported values:
-            NORMAL
-            LEAK
-            TRAFFIC_SPIKE
-        None is treated as NORMAL.
-
-    Returns
-    -------
-    dict
-        A JSON-serializable telemetry object.
     """
 
     mode = (anomaly_mode or "NORMAL").upper()
 
-    if mode not in {"NORMAL", "LEAK", "TRAFFIC_SPIKE"}:
+    if mode not in {"NORMAL", "LEAK", "HYGIENE_WARNING", "TRAFFIC_SPIKE"}:
         raise ValueError(
-            "Invalid anomaly_mode. Use NORMAL, LEAK, or TRAFFIC_SPIKE."
+            "Invalid anomaly_mode. Use NORMAL, LEAK, HYGIENE_WARNING, or TRAFFIC_SPIKE."
         )
 
     # ---------------------------------------------------------
     # NORMAL MODE
     # ---------------------------------------------------------
-    # Water flow is strictly tied to positive occupancy:
-    # occupancy = 0  -> flow = 0
-    # occupancy > 0  -> flow > 0
-    # ---------------------------------------------------------
     if mode == "NORMAL":
         occupancy_count = random.randint(1, 25)
-
-        # More occupants generally imply more water usage.
-        # Keep flow within the required 0.0 - 1.5 LPM range.
         water_flow = min(
             1.5,
             round(
@@ -63,54 +39,42 @@ def generate_telemetry_tick(zone_id, fixture_id, anomaly_mode=None):
                 2
             )
         )
-
-        # Approximate number of flushes during the previous 10 minutes.
         flush_count = min(
             occupancy_count,
             max(0, int(random.gauss(occupancy_count * 0.35, 2)))
         )
-
         pressure = round(random.uniform(42.0, 58.0), 2)
         diagnostic_code = "OK"
 
     # ---------------------------------------------------------
     # LEAK MODE
     # ---------------------------------------------------------
-    # Fixture continuously consumes water even though there
-    # are zero occupants.
-    # ---------------------------------------------------------
     elif mode == "LEAK":
         occupancy_count = 0
-        water_flow = round(random.uniform(0.6, 1.2), 2)
+        water_flow = round(random.uniform(0.95, 1.05), 2)  # Centered around 1.0 LPM (~60 L/hr)
         flush_count = 0
-
-        # Slightly abnormal but still plausible pressure.
         pressure = round(random.uniform(40.0, 56.0), 2)
         diagnostic_code = "LEAK_DETECTED"
 
     # ---------------------------------------------------------
-    # TRAFFIC SPIKE MODE
+    # HYGIENE WARNING MODE
     # ---------------------------------------------------------
-    # Simulates an unusually high-footfall period such as:
-    # boarding rush, event crowd, or terminal peak hour.
+    elif mode == "HYGIENE_WARNING":
+        occupancy_count = random.randint(15, 40)
+        water_flow = 0.0  # Stagnation / lack of flushing
+        flush_count = 0
+        pressure = round(random.uniform(45.0, 55.0), 2)
+        diagnostic_code = "STAGNATION_RISK"
+
+    # ---------------------------------------------------------
+    # TRAFFIC SPIKE MODE (Dynamic realistic variation)
     # ---------------------------------------------------------
     else:
-        occupancy_count = random.randint(101, 180)
-
-        # High number of flushes during the short observation window.
-        flush_count = random.randint(
-            max(30, occupancy_count // 3),
-            min(occupancy_count, 100)
-        )
-
-        # Higher fixture activity, capped at a realistic upper value.
-        water_flow = round(
-            random.uniform(1.0, 1.5),
-            2
-        )
-
-        # Increased demand can cause some pressure variation.
-        pressure = round(random.uniform(35.0, 52.0), 2)
+        # High footfall (160-220) with 0 flushes forces hygiene score < 30 (Hygiene Breach)
+        occupancy_count = random.randint(160, 220)
+        flush_count = 0        
+        water_flow = round(random.uniform(0.95, 1.45), 2)
+        pressure = round(random.uniform(41.0, 53.0), 2)
         diagnostic_code = "TRAFFIC_SPIKE"
 
     return {
@@ -125,22 +89,15 @@ def generate_telemetry_tick(zone_id, fixture_id, anomaly_mode=None):
     }
 
 
-# -------------------------------------------------------------
-# TEST BLOCK
-# -------------------------------------------------------------
 if __name__ == "__main__":
-
-    zone_id = "ZONE_A1"
+    zone_id = "PNQ_NITB_DEPARTURE_ZONE_3"
     fixture_id = "KOHLER_FAUCET_101"
 
-    print("=== Synthetic Kohler IoT Telemetry ===\n")
-
-    # Generate 5 normal telemetry ticks.
+    print("Synthetic Kohler IoT Telemetry (PNQ NITB Test)\n")
     for _ in range(5):
         telemetry = generate_telemetry_tick(
             zone_id,
             fixture_id,
-            anomaly_mode="NORMAL"
+            anomaly_mode="TRAFFIC_SPIKE"
         )
-
         print(telemetry)
