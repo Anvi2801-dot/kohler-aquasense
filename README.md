@@ -13,6 +13,9 @@
 ![scikit-learn](https://img.shields.io/badge/scikit--learn-F7931E?style=for-the-badge&logo=scikitlearn&logoColor=white)
 ![Uvicorn](https://img.shields.io/badge/Uvicorn-499848?style=for-the-badge&logo=gunicorn&logoColor=white)
 
+## Demo Video
+https://github.com/user-attachments/assets/de276e22-8a87-451e-8265-83e696a9547d
+
 ## What It Does
 
 AquaSense OS monitors 9 Kohler smart fixtures (sinks, urinals, stalls) across an airport terminal restroom in real time. When it detects a leak, hygiene breach, or flow anomaly, it automatically generates a structured AI maintenance work order — complete with root cause analysis, Kohler part number, and repair instructions — and dispatches it to the field technician's queue.
