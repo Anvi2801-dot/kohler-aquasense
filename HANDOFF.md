@@ -211,7 +211,7 @@ cost_saved_inr = total_water_saved_liters * 0.11  # PMC bulk utility tariff ₹0
 
 | Issue | Impact | Status |
 |---|---|---|
-| Isolation Forest retrained from scratch on every tick | Performance degrades at scale; fine for 9 fixtures | Known — acceptable for demo scope |
+| Isolation Forest retrained from scratch on every tick | Performance degrades at scale; fine for 9 fixtures | Fixed by pre-training the model first |
 | `reset_analytics_state()` accepts no fixture_id arg | `dispatch/complete` falls back to full reset | Workaround in place in main.py |
 | `water_saved_lpm` variable name is misleading | Actually holds L/hr value (LPM × 60) | Variable name only — logic is correct |
 | In-memory state only | All work orders and telemetry history lost on backend restart | By design for hackathon scope |
@@ -236,7 +236,6 @@ cost_saved_inr = total_water_saved_liters * 0.11  # PMC bulk utility tariff ₹0
 - Real Kohler fixture API integration (currently fully simulated)
 - Push notifications / SMS dispatch to technicians
 - Multi-zone support beyond Departure Zone 3
-- Isolation Forest model persistence (currently stateless between restarts)
 - Auth layer for Executive vs. Technician persona separation
 - Mobile-responsive layout for field technician tablet use
 
