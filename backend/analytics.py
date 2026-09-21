@@ -19,6 +19,7 @@ from collections import defaultdict, deque
 from statistics import mean, stdev
 
 from sklearn.ensemble import IsolationForest
+import numpy as np
 
 
 # ============================================================
@@ -85,9 +86,36 @@ def calculate_z_score(value, history):
 # HELPER: ISOLATION FOREST
 # ============================================================
 
+# 1. Global state: Initialize a single persistent model and training flag
+_ml_model = IsolationForest(
+    n_estimators=100,
+    contamination=0.10,
+    random_state=42
+)
+_is_model_trained = False
+
+def train_baseline_model():
+    """
+    Simulates loading or pre-training on clean, baseline historical data 
+    (e.g., 30-day baseline telemetry) once at startup.
+    """
+    global _ml_model, _is_model_trained
+    
+    # Generate clean synthetic baseline data representing typical airport operations
+    # [water_flow (LPM), flush_count, occupancy, pressure (bar)]
+    np.random.seed(42)
+    clean_baseline_data = np.random.normal(
+        loc=[0.5, 3, 15, 2.2],  # Typical means
+        scale=[0.1, 1, 3, 0.1],  # Standard deviations
+        size=(200, 4)            # 200 clean historical samples
+    )
+    
+    _ml_model.fit(clean_baseline_data)
+    _is_model_trained = True
+
 def detect_ml_anomaly(fixture_id, features):
     """
-    Detect statistical anomalies using Isolation Forest.
+    Detect statistical anomalies using pretrained Isolation Forest.
 
     Parameters
     ----------
@@ -104,26 +132,17 @@ def detect_ml_anomaly(fixture_id, features):
         True if the current observation is anomalous.
     """
 
-    history = _feature_history[fixture_id]
+    global _ml_model, _is_model_trained
 
-    # Isolation Forest requires multiple observations to
-    # establish a meaningful anomaly boundary.
-    if len(history) < 5:
-        history.append(features)
-        return False
+    # Train once on clean baseline if not already trained
+    if not _is_model_trained:
+        train_baseline_model()
 
-    model = IsolationForest(
-        n_estimators=100,
-        contamination=0.10,
-        random_state=42
-    )
+    # Pure inference: Predict directly on incoming 4D feature vector
+    # [water_flow, flush_count, occupancy, pressure]
+    prediction = _ml_model.predict([features])[0]
 
-    model.fit(list(history))
-
-    prediction = model.predict([features])[0]
-
-    history.append(features)
-
+    # -1 represents an anomaly isolated from the clean baseline
     return prediction == -1
 
 
